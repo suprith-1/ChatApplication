@@ -4,14 +4,14 @@ import profile from '../assets/profile.png'
 import { useStore } from '../store/user';
 
 const ChatSideBar = () => {
-    const {users,getUsers,setChatSelectedUser} = useStore();
-    const {onlineUsers,user:currentuser}=useStore();
+    const {users,getUsers,setChatSelectedUser,onlineUsers,user:currentuser,unreadMessages,getUnreadMessages} = useStore();
     useEffect(() => {
       getUsers();
+      getUnreadMessages();
     }, [])
     
   return (
-    <div className='overflow-y-hidden p-3 flex flex-col gap-2.5 h-full'>
+    <div className=' p-3 flex flex-col gap-2.5 h-full overflow-y-scroll'>
       {
         users.map((user,i)=>{
             return (
@@ -23,6 +23,11 @@ const ChatSideBar = () => {
                     <div className='flex flex-col'>
                         <span className={`font-semibold text-lg ${onlineUsers.includes(user._id)?'text-green-500':'text-red-500'}`}>{user.username}</span>
                         <span className='font-light text-sm' > {onlineUsers.includes(user._id)?'online':'offline'}</span>
+                        {
+                          unreadMessages[user._id] > 0 &&(
+                            <span>{unreadMessages[user._id]}unreadMessage</span>
+                          )
+                        }
                     </div>
                 </div>
             )

@@ -5,15 +5,16 @@ import { useStore } from '../store/user';
 const Navbar = () => {
 
     const navigate = useNavigate();
-    const {isLogin,setUser,disconnect} = useStore();
+    const {isLogin,setUser,disconnect,setChatSelectedUser} = useStore();
     const handleLogout = async () =>{
-        const res = await fetch('http://localhost:5555/auth/logout',{
+        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/auth/logout',{
             method: 'POST',
             credentials: 'include'
         })
         if(res.ok){
             disconnect();
             setUser(null);
+            setChatSelectedUser(null);
         }
     }
   return (

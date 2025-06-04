@@ -1,32 +1,59 @@
-import React from 'react'
+import React, { useLayoutEffect } from 'react'
 import profile from '../assets/profile.png'
 import { useState } from 'react';
 import { useStore } from '../store/user';
 import { useRef } from 'react';
 import { useEffect } from 'react';
+import typingGif from '../assets/typing2.gif';
+
 
 const ChatBox = () => {
-    const {chatSelectedUser,setChatSelectedUser,messages,user:currUser,addMessage} = useStore();
+    const {chatSelectedUser,setChatSelectedUser,messages,user:currUser,addMessage,setMessages,typing,socket,setTyping,removeUnreadMessages,unreadMessages} = useStore();
     const user = chatSelectedUser;
     const [typingMessage,setTypingMessage] = useState("");
     const end = useRef(null);
+    const input = useRef(null);
 
-    useEffect(()=>{
-        if(end.current){
-            end.current.scrollIntoView({ behavior: 'smooth' });
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                setChatSelectedUser(null);
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    useEffect(() => {
+            end.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+
+    useEffect(() => {
+        if (input.current) {
+            input.current.focus();
         }
-    }
-    , [messages]);
+        if(chatSelectedUser && unreadMessages[chatSelectedUser._id]){
+            removeUnreadMessages(chatSelectedUser._id);
+        }
+        setTypingMessage(null);
+    }, [chatSelectedUser])
+
 
     const handleSendMessage = async()=>{
         if(typingMessage.trim() === "") return;
+        socket.emit('stopTyping', { receiver: user._id, sender: currUser._id });
         const newMessage = {
             sender:currUser._id,
             receiver:user._id,
             content:typingMessage,
             image:null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            seen: false,
         }
-        const res = await fetch('http://localhost:5555/api/sendMessage', {
+        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/api/sendMessage', {
             method:'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -39,8 +66,7 @@ const ChatBox = () => {
             return;
         }
         const data = await res.json(); 
-        console.log('Message sent:', data);
-        addMessage(newMessage);
+        addMessage(data);
         setTypingMessage(""); 
     }
 
@@ -49,6 +75,9 @@ const ChatBox = () => {
         onKeyDown={(e) => {
             if(e.key === 'Enter'){
                 handleSendMessage();
+            }
+            if(e.key==='escape'){
+                setChatSelectedUser(null);
             }
         }}
     >
@@ -76,14 +105,27 @@ const ChatBox = () => {
                     return message.sender === currUser._id ? (
                         <div key={i} className='bg-blue-100 p-2 h-auto rounded-lg shadow-md max-w-xl self-end'>
                             <span className='font-semibold'></span> {message.content}
+                            <div className='font-light flex w-full content-end-safe'>
+                                <div>{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}</div>
+                                <div className={`${message.seen?'text-green-500':'text-black'} text-xl`}>✓</div>
+                            </div>
+
                         </div>
                     ):(
                         <div key={i} className='bg-white p-2 h-auto rounded-lg shadow-md max-w-xl self-start'>
                                 <span className='font-semibold'></span> {message.content}
+                                <div className='font-light flex w-full content-end-safe'>{new Date(message.createdAt).getHours()}:{new Date(message.createdAt).getMinutes()}</div>
                         </div>
                     )
-                    
                 })
+                
+            }
+            {
+                typing && (
+                    <div>
+                        <img  src={typingGif} className='h-13 w-20 self-start' />
+                    </div>
+                )
             }
             <div ref={end}></div>
         </div>
@@ -97,7 +139,16 @@ const ChatBox = () => {
             placeholder='Type your message here...'
             className='w-4xl p-2 border border-gray-300 rounded-lg focus:outline-none ' 
             type='text' 
-            onChange={(e)=>{setTypingMessage(e.target.value)}} 
+            ref={input}
+            onChange={(e)=>{
+                setTypingMessage(e.target.value);
+                if(e.target.value.trim() !== "") {
+                    socket.emit('typing', { receiver: user._id, sender: currUser._id });
+                }
+                else{
+                    socket.emit('stopTyping', { receiver: user._id, sender: currUser._id });
+                }
+            }} 
             value={typingMessage}
             ></input>
             <button className='bg-blue-500 text-white px-4 py-2 rounded-lg ml-2 hover:bg-blue-600 transition duration-200'

@@ -14,7 +14,7 @@ const Login = () => {
             username: username.current.value,
             password: password.current.value,
         }
-        const res = await fetch('http://localhost:5555/auth/login', {
+        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

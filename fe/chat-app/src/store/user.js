@@ -10,8 +10,12 @@ export const useStore = create((set,get) => ({
   chatSelectedUser:null,
   setChatSelectedUser: async(user) => {
     set({ chatSelectedUser: user });
+    if(user===null){
+      set({ messages: [] });
+      return;
+    }
     try {
-      const response = await fetch(`http://localhost:5555/api/getAllMessages`,{
+      const response = await fetch(`https://chat-app-backend-phi-three.vercel.app/api/getAllMessages`,{
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -32,7 +36,7 @@ export const useStore = create((set,get) => ({
 
   getUsers: async()=>{
       try {
-          const response = await fetch('http://localhost:5555/api/users');
+          const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/users');
           const data = await response.json();
           set({ users: data });
       } catch (error) {
@@ -45,7 +49,7 @@ export const useStore = create((set,get) => ({
   user: null,
   isLogin: false,
   setUser: () => {
-    fetch('http://localhost:5555/auth/verify',{
+    fetch('https://chat-app-backend-phi-three.vercel.app/auth/verify',{
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -75,9 +79,58 @@ export const useStore = create((set,get) => ({
       });
   },
 
-
+  getUnreadMessages: async()=>{
+    try {
+      const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/getUnreadMessages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver: get().user?._id }),
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      for(const message of data){
+        get().addUnreadMessages({
+          userId: message.sender,
+          count: 1
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching unread messages:', error);
+    }
+  },
   
   messages: [],
+  unreadMessages:{},
+  addUnreadMessages:({userId,count})=>{
+    const current = get().unreadMessages[userId] || 0;
+    set((state) => ({
+      unreadMessages: {
+        ...state.unreadMessages,
+        [userId]: current + count,
+      },
+    }));
+  },
+  removeUnreadMessages: async (userId) => {
+    if(get().unreadMessages[userId]){
+      const updatedUnreadMessages = { ...get().unreadMessages };
+      delete updatedUnreadMessages[userId];
+      set({ unreadMessages: updatedUnreadMessages });
+      const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/removeUnreadMessages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver: get().user?._id, sender: userId }),
+        credentials: 'include',
+      })
+      if (!response.ok) {
+        console.error('Failed to remove unread messages:', response.statusText);
+      } else {
+        console.log('Unread messages removed successfully');
+      }
+    }
+  },
 
   setMessages: (messages) => {
     set({ messages });
@@ -90,6 +143,8 @@ export const useStore = create((set,get) => ({
   onlineUsers: [],
   setOnlineUsers: (users) => set({ onlineUsers: users }),
   socket: null,
+  typing: false,
+  setTyping: (typing) => set({ typing }),
   connect:()=>{
     const socket = io(url,{
       withCredentials: true,
@@ -105,13 +160,54 @@ export const useStore = create((set,get) => ({
       console.log('Online users:', users);
     })
     get().socket.on('getMessage',(newMessage)=>{
-      if(get().chatSelectedUser && get().chatSelectedUser._id !== newMessage.sender){
-        console.log('New message from another user:', newMessage);
+      if(get().chatSelectedUser && get().chatSelectedUser._id === newMessage.sender){
+        set(state => ({ messages: [...state.messages, newMessage] }));
+        get().socket.emit('seenMessage',newMessage);
+        console.log('updated message',get().messages);
         return;
       }
+      get().addUnreadMessages({userId:newMessage.sender,count:1});
+      console.log('New message received:', newMessage.sender);
       // console.log('New message received:', message);
-      set(state => ({ messages: [...state.messages, newMessage] }));
-      console.log('updated message',get().messages);
+    })
+    get().socket.on('newUser',(user)=>{
+      console.log('New user added:', user);
+      set({users : [...get().users,user]});
+      console.log('Updated users:', get().users);
+    })
+    get().socket.on('typing',(sender)=>{
+      if(get().chatSelectedUser && get().chatSelectedUser._id !== sender){
+        console.log('Typing event received from another user:', sender);
+        return;
+      }
+      console.log('Typing event received from:', sender);
+      set({typing:true});
+      
+    })
+    get().socket.on('stopTyping',(sender)=>{
+      set({typing:false});
+    })
+    get().socket.on('seenMessage',(newMessage)=>{
+      console.log('newMessage',newMessage);
+        const updated = get().messages.map((msg) => {
+            if (msg._id === newMessage._id) {
+                console.log('Message seen:', msg.content);
+                return { ...msg, seen: true };
+            }
+            return msg;
+        });
+        console.log('messages Updated seen');
+        get().setMessages(updated);
+        console.log('Updated messages:', updated);
+    })
+    get().socket.on('allMessagesSeen',()=>{
+      console.log('all messages seen event received');
+      if(get().chatSelectedUser){
+        const updated = get().messages.map((mas)=>{
+          return {...mas, seen: true};
+        })
+        get().setMessages(updated);
+      }
     })
   },
   disconnect:()=>{
