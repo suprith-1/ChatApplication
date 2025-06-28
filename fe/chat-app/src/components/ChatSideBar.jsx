@@ -9,6 +9,15 @@ const ChatSideBar = () => {
       getUsers();
       getUnreadMessages();
     }, [])
+    useEffect(() => {
+      users.sort((a,b)=>{
+        const aUnread = unreadMessages[a._id]?.time || -Infinity;
+        const bUnread = unreadMessages[b._id]?.time || -Infinity;
+        return new Date(bUnread) - new Date(aUnread);
+      })
+    
+    }, [unreadMessages])
+    
     
   return (
     <div className=' p-3 flex flex-col gap-2.5 h-full overflow-y-scroll'>
@@ -24,8 +33,10 @@ const ChatSideBar = () => {
                         <span className={`font-semibold text-lg ${onlineUsers.includes(user._id)?'text-green-500':'text-red-500'}`}>{user.username}</span>
                         <span className='font-light text-sm' > {onlineUsers.includes(user._id)?'online':'offline'}</span>
                         {
-                          unreadMessages[user._id] > 0 &&(
-                            <span>{unreadMessages[user._id]}unreadMessage</span>
+                          unreadMessages[user._id]?.count > 0 &&(
+                            console.log(unreadMessages[user._id]),
+                            console.log('unreadMessages',unreadMessages),
+                            <span>{unreadMessages[user._id]?.count}unreadMessage</span>
                           )
                         }
                     </div>

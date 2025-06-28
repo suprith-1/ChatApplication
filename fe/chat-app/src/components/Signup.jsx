@@ -7,7 +7,7 @@ const Signin = () => {
   const username = useRef(null)
     const password = useRef(null)
     const email = useRef(null)
-    const {setUser} = useStore();
+    const {setUser,baseUrl} = useStore();
     const [isButtonLoading, setIsButtonLoading] = useState(false);
     const handleSubmit = async ()=>{
         setIsButtonLoading(true);
@@ -16,7 +16,7 @@ const Signin = () => {
             password: password.current.value,
             email: email.current.value
         }
-        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/auth/signin', {
+        const res = await fetch(`${baseUrl}/auth/signin`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

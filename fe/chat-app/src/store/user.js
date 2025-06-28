@@ -2,10 +2,10 @@ import { create } from 'zustand';
 
 import {io} from 'socket.io-client';
 
-const url = 'http://localhost:5555'
+const url = 'https://chatapp-backend-3nsr.onrender.com'
 
 export const useStore = create((set,get) => ({
-
+  baseUrl : url,
   users:[],
   chatSelectedUser:null,
   setChatSelectedUser: async(user) => {
@@ -15,7 +15,7 @@ export const useStore = create((set,get) => ({
       return;
     }
     try {
-      const response = await fetch(`https://chat-app-backend-phi-three.vercel.app/api/getAllMessages`,{
+      const response = await fetch(`${url}/api/getAllMessages`,{
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -36,7 +36,7 @@ export const useStore = create((set,get) => ({
 
   getUsers: async()=>{
       try {
-          const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/users');
+          const response = await fetch(`${url}/api/users`);
           const data = await response.json();
           set({ users: data });
       } catch (error) {
@@ -49,7 +49,7 @@ export const useStore = create((set,get) => ({
   user: null,
   isLogin: false,
   setUser: () => {
-    fetch('https://chat-app-backend-phi-three.vercel.app/auth/verify',{
+    fetch(`${url}/auth/verify`,{
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -81,7 +81,7 @@ export const useStore = create((set,get) => ({
 
   getUnreadMessages: async()=>{
     try {
-      const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/getUnreadMessages', {
+      const response = await fetch(`${url}/api/getUnreadMessages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiver: get().user?._id }),
@@ -94,7 +94,8 @@ export const useStore = create((set,get) => ({
       for(const message of data){
         get().addUnreadMessages({
           userId: message.sender,
-          count: 1
+          count: 1,
+          time:message.createdAt
         });
       }
     } catch (error) {
@@ -104,12 +105,12 @@ export const useStore = create((set,get) => ({
   
   messages: [],
   unreadMessages:{},
-  addUnreadMessages:({userId,count})=>{
-    const current = get().unreadMessages[userId] || 0;
+  addUnreadMessages:({userId,count,time})=>{
+    const current = get().unreadMessages[userId]?.count || 0;
     set((state) => ({
       unreadMessages: {
         ...state.unreadMessages,
-        [userId]: current + count,
+        [userId]: {count : current + count,time:time || new Date().toISOString()},
       },
     }));
   },
@@ -118,7 +119,7 @@ export const useStore = create((set,get) => ({
       const updatedUnreadMessages = { ...get().unreadMessages };
       delete updatedUnreadMessages[userId];
       set({ unreadMessages: updatedUnreadMessages });
-      const response = await fetch('https://chat-app-backend-phi-three.vercel.app/api/removeUnreadMessages', {
+      const response = await fetch(`${url}/api/removeUnreadMessages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ receiver: get().user?._id, sender: userId }),

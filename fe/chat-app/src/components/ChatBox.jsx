@@ -26,8 +26,8 @@ const ChatBox = () => {
     }, []);
 
     useEffect(() => {
-            end.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        end.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages,typing]);
 
 
     useEffect(() => {
@@ -53,7 +53,7 @@ const ChatBox = () => {
             updatedAt: new Date().toISOString(),
             seen: false,
         }
-        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/api/sendMessage', {
+        const res = await fetch(`${baseUrl}/api/sendMessage`, {
             method:'POST',
             headers: {
                 'Content-Type': 'application/json'

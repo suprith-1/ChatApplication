@@ -7,14 +7,14 @@ const Login = () => {
     const username = useRef(null)
     const password = useRef(null)
     const navigate = useNavigate();
-    const {connect,setUser} = useStore()
+    const {connect,setUser,baseUrl} = useStore()
 
     const handleLogin = async ()=>{
         const user = {
             username: username.current.value,
             password: password.current.value,
         }
-        const res = await fetch('https://chat-app-backend-phi-three.vercel.app/auth/login', {
+        const res = await fetch(`${baseUrl}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
