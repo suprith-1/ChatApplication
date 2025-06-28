@@ -3,13 +3,13 @@ import { login, signin, logout, verify } from '../controller/auth.js';
 
 const authRouter = express.Router();
 
-authRouter.post('/signin',(req,res)=>{signin(req,res)});
+authRouter.post('/signin',signin);
 
-authRouter.post('/logout',(req,res)=>{logout(req,res)});
+authRouter.post('/logout',logout);
 
-authRouter.post('/login',(req,res)=>{login(req,res) });
+authRouter.post('/login',login);
 
-authRouter.get('/verify', (req,res)=>{verify(req,res) });
+authRouter.get('/verify', verify);
 
 
 export default authRouter;

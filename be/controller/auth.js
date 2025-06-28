@@ -1,4 +1,5 @@
 import { newToken, verifyToken } from "../lib/jwt.js";
+import { addNewUser } from "../lib/socket.js";
 import user from "../model/user.js";
 import jwt from 'jsonwebtoken';
 
@@ -13,7 +14,8 @@ export const signin = async (req, res) => {
     const newUser = new user({username, email, password});
     const token = newToken(newUser._id);
     await newUser.save();
-    res.cookie('token', token,{maxAge: 7 * 24 * 60 * 60 * 1000,httpOnly: true,secure:false});
+    res.cookie('token', token,{maxAge: 7 * 24 * 60 * 60 * 1000,httpOnly: true,secure:true,sameSite: 'none'});
+    addNewUser(newUser);
     return res.status(200).json({msg: 'User registered successfully'});
 }
 
@@ -22,7 +24,7 @@ export const login = async (req, res) => {
     const presUser = await user.findOne({username});
     if(presUser && presUser.password === password){
         const token = newToken(presUser._id);
-        res.cookie('token', token,{maxAge: 7 * 24 * 60 * 60 * 1000,httpOnly: true,secure:false});
+        res.cookie('token', token,{maxAge: 7 * 24 * 60 * 60 * 1000,httpOnly: true,secure:true,sameSite: 'none'})
         return res.status(200).json({user:presUser});
     }
     return res.status(400).json({msg: 'Invalid credentials'});
@@ -38,6 +40,7 @@ export const logout = (req, res) => {
 }
 
 export const verify = async (req,res) =>{
+    console.log(req.cookies);
     const token = req.cookies.token;
     if(verifyToken(token)){
         const userToken = jwt.verify(token, process.env.secrete);

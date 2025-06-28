@@ -1,3 +1,4 @@
+import { allMessagesSeen } from "../lib/socket.js";
 import Message from "../model/message.js";
 
 
@@ -20,4 +21,18 @@ export const getAllMessage = async (req, res) => {
         console.error('Error fetching messages:', error);
         return res.status(500).json({ msg: 'Internal server error' });
     }
+
+}
+
+export const getUnreadMessages = async (req,res)=>{
+    const {receiver} = req.body;
+    const unreadMessages = await Message.find({receiver,seen:false});
+    return res.status(200).json(unreadMessages);
+}
+
+export const removeUnreadMessages = async(req,res) =>{
+    const {receiver,sender} = req.body;
+    await Message.updateMany({receiver, sender,seen:false}, {seen: true});
+    allMessagesSeen(sender);
+    return res.status(200).json({msg: 'Unread messages removed successfully'});
 }

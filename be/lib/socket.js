@@ -3,11 +3,13 @@ import {Server} from 'socket.io';
 import {createServer} from 'http';
 import Message from '../model/message.js'
 
+const fe_url = 'https://chatapp-frontend-okrj.onrender.com'
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:5174',
+        origin: [fe_url],
         methods: ['GET', 'POST'],
         credentials: true,
     },
@@ -30,6 +32,16 @@ io.on('connect',(socket)=>{
         }
         io.emit('getOnlineUsers', Object.keys(onlineUsers));
     });
+    socket.on('typing',({receiver, sender})=>{
+        io.to(onlineUsers[receiver]).emit('typing',sender);
+    })
+    socket.on('stopTyping',({receiver, sender})=>{
+        io.to(onlineUsers[receiver]).emit('stopTyping',sender);
+    })  
+    socket.on('seenMessage',async (newMessage)=>{
+        await Message.updateOne({_id:newMessage._id},{seen:true});
+        io.to(onlineUsers[newMessage.sender]).emit('seenMessage', newMessage);
+    })
 })
 
 export const sendMessage = async(req,res)=>{
@@ -43,8 +55,16 @@ export const sendMessage = async(req,res)=>{
     });
     await newMessage.save();
     io.to(onlineUsers[receiver]).emit('getMessage', newMessage);
-    return res.status(200).json({msg: 'Message sent successfully'});
+    return res.status(200).json(newMessage);
 }
 
+export const addNewUser = (user)=>{
+    io.emit('newUser', user);
+}
+
+export const allMessagesSeen = (to)=>{
+    console.log('sending all messages seen to', to);
+    io.to(onlineUsers[to]).emit('allMessagesSeen');
+}
 
 export {app,server};

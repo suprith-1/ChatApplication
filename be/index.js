@@ -9,11 +9,13 @@ import { app, server } from './lib/socket.js';
 
 
 dotenv.config();
+const fe_url = 'https://chatapp-frontend-okrj.onrender.com'
+
 
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-    origin: 'http://localhost:5174',
+    origin: [fe_url],
     credentials: true,
 }));
 
