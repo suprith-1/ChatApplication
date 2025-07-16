@@ -9,13 +9,18 @@ import { app, server } from './lib/socket.js';
 
 
 dotenv.config();
-const fe_url = 'https://chatapp-frontend-okrj.onrender.com'
+const fe_url = 'https://chat-app-client-bb5p.onrender.com'
+
+app.get("/ping", (req, res) => {
+  console.log(" PING RECEIVEDDD   ");
+  res.status(200).send("pong");
+});
 
 
 app.use(express.json());
 app.use(cookieParser())
 app.use(cors({
-    origin: [fe_url],
+    origin: [fe_url,'http://localhost:5173'],
     credentials: true,
 }));
 

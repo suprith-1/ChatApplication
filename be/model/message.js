@@ -17,11 +17,16 @@ const messageSchema = new mongoose.Schema({
     },
     image:{
         type:String,
+        default: null
     },
     seen:{
         type:Boolean,
         default: false
     },
+    isCall: {
+        type: Boolean,
+        default: false
+    }
 },
     {timestamps: true}
 )

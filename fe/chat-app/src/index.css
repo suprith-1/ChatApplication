@@ -1,3 +1,58 @@
 
 @import "tailwindcss";
 
+:root {
+  --bg-color: #f9fafb;
+  --text-color: #1f2937;
+  --primary-color: #3b82f6;
+  --secondary-color: #ffffff;
+  --hover-color: #facc15;
+
+
+}
+
+.theme-dark {
+  --bg-color: #1f2937;
+  --text-color: #f9fafb;
+  --primary-color: #3973ef;
+  --secondary-color: #374151;
+  --hover-color: #46444471;
+  --hover-text-color: #5da2e7;
+}
+
+.theme-ocean {
+  --bg-color: #e0f7fa;
+  --text-color: #004d40;
+  --primary-color: #00acc1;
+  --secondary-color: #b2ebf2;
+  --hover-color: #4dd0e1;
+}
+
+.theme-sunset {
+  --bg-color: #fff3e0;
+  --text-color: #4e342e;
+  --primary-color: #f57c00;
+  --secondary-color: #ffe0b2;
+  --hover-color: #ffb74d;
+}
+
+/* Add this to index.css or global.css */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  border: 2px solid var(--bg-color);
+}
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--bg-color);
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--hover-color);
+}
+

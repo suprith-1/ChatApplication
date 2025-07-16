@@ -33,7 +33,11 @@ export const login = async (req, res) => {
 export const logout = (req, res) => {
     const presToken = req.cookies.token;
     if(verifyToken(presToken)) {
-        res.clearCookie('token');
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+        });
         return res.status(200).json({msg: 'User logged out successfully'});
     }
     return res.status(400).json({msg: 'No token found'});
@@ -53,5 +57,6 @@ export const verify = async (req,res) =>{
     }
 
 }
+
 
 
