@@ -102,16 +102,20 @@ CLOUDINARY_API_SECRET=your_secret
 ## 📸 Screenshots
 
 ### 🔐 Login Page
-![Login Page](./screenshots/login.png)
+<img width="1893" height="968" alt="image" src="https://github.com/user-attachments/assets/8b32ec7d-02da-4b4f-b3d8-0d040afcf281" />
+
 
 ### 💬 Chat Interface
-![Chat Interface](./screenshots/chat.png)
+<img width="1388" height="800" alt="image" src="https://github.com/user-attachments/assets/8d6c1586-b458-4c94-9956-d70d944bf85e" />
+
 
 ### 📞 Incoming Call
-![Incoming Call](./screenshots/incoming-call.png)
+<img width="386" height="427" alt="image" src="https://github.com/user-attachments/assets/d3cfb03a-ec32-4e84-acd2-348460ee4ec7" />
+
 
 ### 📤 Outgoing Call
-![Outgoing Call](./screenshots/outgoing-call.png)
+<img width="565" height="647" alt="image" src="https://github.com/user-attachments/assets/3230cb26-156e-4e68-b942-868e162f650f" />
+
 
 ---
 
